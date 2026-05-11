@@ -32,6 +32,11 @@
         .hidden { display: none !important; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+        .btn:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
     </style>
 </head>
 
@@ -288,15 +293,47 @@
 
         async function submitOrder() {
             if (deadline && new Date() > new Date(deadline)) return alert("⏰ 點餐已截止！");
+    
             const name = document.getElementById('student-name').value.trim();
             if (name.length < 2) return alert("請輸入真實姓名");
             if (cart.length === 0) return alert("清單不可為空");
-            const ori = cart.reduce((s, c) => s + c.p, 0); const fin = ori - Math.min(ori, 100);
+
+            // --- 防止重複點擊邏輯 ---
+            const submitBtn = event.target; // 取得點擊的按鈕
+            const originalText = submitBtn.innerText;
+    
+            submitBtn.disabled = true; // 禁用按鈕
+            submitBtn.innerText = "🚀 傳送中，請稍候 (約5秒)..."; 
+            // ----------------------
+
+            const ori = cart.reduce((s, c) => s + c.p, 0); 
+            const fin = ori - Math.min(ori, 100);
             const orderObj = { name, detail: cart.map(c => c.info).join('<br>'), ori, fin, paid: false, rec: 0 };
-            try { await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(orderObj) }); alert("🎉 點餐成功且已同步雲端！"); } 
-            catch (e) { alert("同步失敗，僅存於本機。"); }
-            orders.push(orderObj); localStorage.setItem('mcd_orders_v4', JSON.stringify(orders));
-            cart = []; document.getElementById('student-name').value = ""; updateCart(); renderAdmin();
+
+            try { 
+                const response = await fetch(GAS_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(orderObj) 
+                }); 
+        
+                if(response.ok) {
+                    alert("🎉 點餐成功且已同步雲端！");
+                    orders.push(orderObj); 
+                    localStorage.setItem('mcd_orders_v4', JSON.stringify(orders));
+                    cart = []; 
+                    document.getElementById('student-name').value = ""; 
+                    updateCart(); 
+                    renderAdmin();
+                } else {
+                    throw new Error("Server Error");
+                }
+            } 
+            catch (e) { 
+                alert("❌ 同步失敗（可能是網路太慢），請截圖此畫面給主辦人！"); 
+                // 失敗時把按鈕還原，讓使用者可以重試
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalText;
+            }
         }
 
         function initDrinks() { document.getElementById('drink-select').innerHTML = MENU.drink.map(d => `<option>${d.n} ($${d.p})</option>`).join(''); }
