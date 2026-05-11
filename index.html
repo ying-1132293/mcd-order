@@ -353,7 +353,16 @@
         function togglePaid(i, val) { orders[i].paid = val; localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); }
         function saveDeadline() { deadline = document.getElementById('set-deadline').value; localStorage.setItem('mcd_deadline_v4', deadline); }
         function clearData() { if (confirm("確定清空所有紀錄？")) { orders = []; localStorage.removeItem('mcd_orders_v4'); renderAdmin(); } }
-        function switchTab(t) { document.getElementById('order-view').classList.toggle('hidden', t === 'admin'); document.getElementById('admin-view').classList.toggle('hidden', t === 'order'); if (t === 'admin') renderAdmin(); }
+        function switchTab(t) { 
+            document.getElementById('order-view').classList.toggle('hidden', t === 'admin'); 
+            document.getElementById('admin-view').classList.toggle('hidden', t === 'order'); 
+    
+            if (t === 'admin') {
+                // 切換到後台時，先顯示舊有的，並同時偷偷去雲端抓新的
+                renderAdmin(); 
+                syncFromCloud(); // 這行會讓它自動跑同步流程
+            }
+        }
         function updateClock() { if (!deadline) return; const diff = new Date(deadline) - new Date(); document.getElementById('timer').innerText = diff > 0 ? `截止倒數: ${Math.floor(diff / 3600000)}時${Math.floor((diff % 3600000) / 60000)}分${Math.floor((diff % 60000) / 1000)}秒` : "點餐已截止"; }
         function copyUnpaidList() { let list = "📢 班聚收錢清單：\n"; orders.forEach(o => { if (!o.paid) list += `❓ ${o.name}：應繳 $${o.fin}\n`; }); navigator.clipboard.writeText(list); alert("已複製名單！"); }
     </script>
