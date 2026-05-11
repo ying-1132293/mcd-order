@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班聚麥當勞點餐系統 (沙鹿中棲店)</title>
+    <title>班聚麥當勞點餐系統 (沙鹿中棲店-外送版)</title>
     <style>
         :root { --mcd-red: #DA291C; --mcd-yellow: #FFC72C; --bg-color: #f8f9fa; }
         body { font-family: sans-serif; background-color: var(--bg-color); margin: 0; padding: 10px; color: #333; }
@@ -43,7 +43,7 @@
         </div>
 
         <div id="order-view">
-            <h2 style="text-align:center; color:var(--mcd-red)">🍟 沙鹿中棲店點餐系統</h2>
+            <h2 style="text-align:center; color:var(--mcd-red)">🍟 班聚外送點餐系統</h2>
             <div style="text-align:center; font-weight:bold; color:var(--mcd-red); margin-bottom:10px;" id="timer"></div>
             <div class="form-group">
                 <label>你的名字 (必填)：</label>
@@ -55,9 +55,8 @@
                     <div class="form-group">
                         <label>選擇餐點類別：</label>
                         <select id="cat-select" onchange="switchCat(this.value)">
-                            <option value="burger">漢堡與沙拉 (可加全餐)</option>
+                            <option value="burger">漢堡 (可加全餐)</option>
                             <option value="chicken">雞塊與麥脆鷄 (可加全餐)</option>
-                            <option value="oneplusone">1+1 星級點</option>
                             <option value="drink">各式飲品 (單點)</option>
                             <option value="snack">甜點與點心 (單點)</option>
                         </select>
@@ -68,14 +67,15 @@
                     <div id="custom-box" class="customizer hidden">
                         <h4 style="margin:0 0 10px; color:var(--mcd-red)">🛠️ 選擇細節</h4>
                         <div id="side-select-area" class="form-group">
-                            <label>選擇配餐 (全餐加價)：</label>
+                            <label>選擇配餐 (歡樂送加價)：</label>
                             <select id="side-select" onchange="updateSubtotal()">
                                 <option value="none">單點 (不加配餐)</option>
                                 <option value="A">A 經典配餐: 中薯+38飲品 (+$65)</option>
                                 <option value="B">B 清爽配餐: 四季沙拉+38飲品 (+$70)</option>
                                 <option value="C">C 勁脆配餐: 1塊麥脆鷄+38飲品 (+$84)</option>
-                                <option value="D">D 炫冰配餐: 冰炫風+小薯+38飲品 (+$99)</option>
-                                <option value="E">E 豪吃配餐: 6塊雞塊+小薯+38飲品 (+$99)</option>
+                                <option value="D">D 豪爽配餐: 大薯+1塊麥脆鷄+38飲品 (+$150)</option>
+                                <option value="E">E 勁盤配餐: 大薯+6塊雞塊+38飲品 (+$150)</option>
+                                <option value="F">F 歡樂配餐: 大薯+4塊雞塊+38飲品 (+$120)</option>
                             </select>
                         </div>
                         <div id="detail-options">
@@ -103,22 +103,6 @@
                         </div>
                         <div style="text-align:right; font-weight:bold;">小計: <span id="subtotal-price" class="price">$0</span></div>
                         <button class="btn btn-add" onclick="addToCart()">＋ 加入點餐清單</button>
-                    </div>
-                    <div id="oneplusone-box" class="customizer hidden">
-                        <h4 style="margin:0 0 10px; color:var(--mcd-red)">1+1 星級點</h4>
-                        <label>紅區 (選一)：</label>
-                        <select id="red-zone" onchange="update1Plus1Sauce()"></select>
-                        <label style="margin-top:10px;">白區飲料 (選一)：</label>
-                        <select id="white-zone"></select>
-                        <div id="oneplusone-sauce-area" class="hidden" style="margin-top:10px;">
-                            <label>雞塊醬汁 (選一包)：</label>
-                            <select id="oneplusone-sauce-select">
-                                <option value="糖醋醬包">糖醋醬包</option>
-                                <option value="蜂蜜芥末醬包">蜂蜜芥末醬包</option>
-                                <option value="泰式香辣醬包">泰式香辣醬包</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-add" style="margin-top:10px" onclick="add1Plus1ToCart()">＋ 加入清單</button>
                     </div>
                 </div>
 
@@ -159,66 +143,56 @@
 
         const MENU = {
             burger: [
-                { n: "辣味雙層四盎司牛肉堡", p: 132 }, { n: "辣味四盎司牛肉堡", p: 92 },
-                { n: "雙層四盎司牛肉堡", p: 132 }, { n: "四盎司牛肉堡", p: 92 },
-                { n: "大麥克", p: 78 }, { n: "BLT安格斯牛肉堡", p: 122 },
-                { n: "蕈菇安格斯牛肉堡", p: 132 }, { n: "帕瑪森安格斯牛肉堡", p: 127 },
-                { n: "雙層牛肉吉事堡", p: 72 }, { n: "勁辣鷄腿堡", p: 78 },
-                { n: "嫩煎鷄腿堡", p: 83 }, { n: "帕瑪森主廚鷄腿堡", p: 122 },
-                { n: "蕈菇主廚鷄腿堡", p: 132 }, { n: "BLT嫩煎鷄腿堡", p: 122 },
-                { n: "麥香魚", p: 52 }, { n: "雙層麥香鷄", p: 78 }, { n: "麥香鷄", p: 48 }
+                { n: "辣味雙層四盎司牛肉堡", p: 135 }, { n: "辣味四盎司牛肉堡", p: 95 },
+                { n: "雙層四盎司牛肉堡", p: 135 }, { n: "四盎司牛肉堡", p: 95 },
+                { n: "大麥克", p: 81 }, { n: "BLT安格斯牛肉堡", p: 125 },
+                { n: "蕈菇安格斯牛肉堡", p: 135 }, { n: "帕瑪森安格斯牛肉堡", p: 130 },
+                { n: "雙層牛肉吉事堡", p: 75 }, { n: "勁辣鷄腿堡", p: 81 },
+                { n: "嫩煎鷄腿堡", p: 86 }, { n: "帕瑪森主廚鷄腿堡", p: 130 },
+                { n: "蕈菇主廚鷄腿堡", p: 135 }, { n: "BLT嫩煎鷄腿堡", p: 125 },
+                { n: "麥香魚", p: 60 }, { n: "雙層麥香鷄", p: 81 }, { n: "麥香鷄", p: 51 }
             ],
             chicken: [
-                { n: "麥克雞塊 (10塊)", p: 109, isNuggets: true },
-                { n: "麥克雞塊 (6塊)", p: 68, isNuggets: true },
-                { n: "原味麥脆鷄腿 (2塊)", p: 126 },
-                { n: "辣味麥脆鷄腿 (2塊)", p: 126 }
+                { n: "麥克雞塊 (10塊)", p: 110, isNuggets: true },
+                { n: "麥克雞塊 (6塊)", p: 69, isNuggets: true },
+                { n: "原味麥脆鷄腿 (2塊)", p: 129 },
+                { n: "辣味麥脆鷄腿 (2塊)", p: 129 }
             ],
             drink: [
                 { n: "🥤 可口可樂(中)", p: 38 }, { n: "🍋 檸檬風味紅茶(冰)(中)", p: 38 },
-                { n: "🥤 雪碧(中)", p: 38 }, { n: "🍵 無糖綠茶(冰)(中)", p: 43 }, { n: "🍂 無糖紅茶(冰)(中)", p: 43 },
-                { n: "🥤 可口可樂 Zero(中)", p: 38 }, { n: "☕ 金選美式咖啡(熱)", p: 58 }, { n: "☕ 金選美式咖啡(冰)", p: 58 }, { n: "☕ 經典美式咖啡(熱)", p: 48 },
-                { n: "☕ 金選美式咖啡(冰)(大)", p: 68 }, { n: "🥛 金選那堤(熱)", p: 87 }, { n: "🥛 金選那堤(冰)", p: 87 },
-                { n: "☕ 經典卡布奇諾(熱)", p: 58 }, { n: "☕ 經典卡布奇諾(冰)", p: 77 }, { n: "🍯 蜂蜜紅茶(冰)", p: 58 },
-                { n: "🥛 蜂蜜奶茶(冰)", p: 68 }, { n: "🥛 蜂蜜奶茶(熱)", p: 68 }, { n: "🍬 焦糖奶茶(冰)", p: 68 }, { n: "🥣 玉米湯(小)", p: 45 },
-                { n: "🥣 玉米湯(大)", p: 55 }, { n: "🥛 經典那堤(冰)", p: 77 },
-                { n: "🥛 經典那堤(熱)", p: 77 }, { n: "🧋 奶茶(冰)", p: 50 }, { n: "🧋 奶茶(熱)", p: 50 },
-                { n: "🍂 紅茶(熱)", p: 38 }, { n: "🍊 台灣鮮榨柳丁汁", p: 68 }, { n: "🥛 鮮乳", p: 38 },
-                { n: "☕ 義式濃縮", p: 58 }, { n: "💧 Evian 礦泉水", p: 50 }
+                { n: "🥤 雪碧(中)", p: 38 }, { n: "🍵 無糖綠茶(冰)(中)", p: 44 }, { n: "🍂 無糖紅茶(冰)(中)", p: 44 },
+                { n: "🥤 可口可樂 Zero(中)", p: 38 }, { n: "☕ 金選美式咖啡(熱)", p: 75 }, { n: "☕ 金選美式咖啡(冰)", p: 75 }, { n: "☕ 經典美式咖啡(熱)", p: 65 },
+                { n: "☕ 經典美式咖啡(冰)", p: 65 }, { n: "🥛 金選那堤(熱)", p: 88 }, { n: "🥛 金選那堤(冰)", p: 88 },
+                { n: "🍯 蜂蜜紅茶(冰)", p: 59 },
+                { n: "🥛 蜂蜜奶茶(冰)", p: 69 }, { n: "🥛 蜂蜜奶茶(熱)", p: 69 }, { n: "🍬 焦糖奶茶(冰)", p: 69 }, { n: "🥣 玉米湯(小)", p: 46 },
+                { n: "🥣 玉米湯(大)", p: 56 }, { n: "🥛 經典那堤(冰)", p: 78 },
+                { n: "🥛 經典那堤(熱)", p: 78 }, { n: "🧋 奶茶(冰)", p: 51 }, { n: "🧋 奶茶(熱)", p: 51 },
+                { n: "🍂 紅茶(熱)", p: 38 }, { n: "🍊 台灣鮮榨柳丁汁", p: 69 }, { n: "🥛 鮮乳", p: 33 },
+                { n: "💧 Evian 礦泉水", p: 51 }
             ],
             snack: [
-                { n: "草莓白巧克力三角派", p: 50 }, { n: "雙倍OREO 冰炫風", p: 65 }, { n: "OREO 冰炫風", p: 59 },
-                { n: "蛋捲冰淇淋", p: 18 }, { n: "大蛋捲冰淇淋", p: 32 }, { n: "蘋果派", p: 40 },
-                { n: "巧克力榛果可頌", p: 50 }, { n: "肉桂捲", p: 50 }, { n: "玉米湯 (小)", p: 45 },
-                { n: "玉米湯 (大)", p: 55 },
-                { n: "麥克雞塊 (4塊)", p: 48, isNuggets: true },
-                { n: "勁辣香雞翅 (6塊)", p: 130 }, { n: "勁辣香雞翅 (2塊)", p: 49 },
-                { n: "原味麥脆雞腿 (1塊)", p: 68 }, { n: "辣味麥脆雞腿 (1塊)", p: 68 },
-                { n: "麥克雙牛堡 (單點)", p: 60 }, { n: "吉事漢堡 (單點)", p: 48 }, { n: "漢堡 (單點)", p: 36 },
+                { n: "草莓白巧克力三角派", p: 50 }, { n: "草莓雙派組", p: 95 }, { n: "雙倍OREO 冰炫風", p: 66 }, { n: "OREO 冰炫風", p: 120 }, { n: "OREO 冰炫風", p: 60 },
+                { n: "蛋捲冰淇淋", p: 18 }, { n: "大蛋捲冰淇淋", p: 32 }, { n: "蘋果派", p: 41 },
+                { n: "巧克力榛果可頌", p: 50 }, { n: "原味可頌", p: 50 }, { n: "肉桂捲", p: 50 }, { n: "玉米湯 (小)", p: 46 },
+                { n: "玉米湯 (大)", p: 56 },
+                { n: "麥克雞塊 (4塊)", p: 49, isNuggets: true },
+                { n: "勁辣香雞翅 (6塊)", p: 131 }, { n: "勁辣香雞翅 (2塊)", p: 50 },
+                { n: "原味麥脆雞腿 (1塊)", p: 69 }, { n: "辣味麥脆雞腿 (1塊)", p: 69 },
+                { n: "漢堡 (單點)", p: 36 },
                 { n: "薯條 (小)", p: 40 }, { n: "薯條 (中)", p: 50 }, { n: "薯條 (大)", p: 66 },
-                { n: "水果袋 (芭樂)", p: 42 }, { n: "四季沙拉", p: 55 }
-            ],
-            oneplusone_red: [
-                { n: "原味麥脆鷄腿", p: 69 }, { n: "辣味麥脆鷄腿", p: 69 }, { n: "麥克雙牛堡", p: 69 },
-                { n: "吉事漢堡", p: 50 }, 
-                { n: "麥克雞塊 (6塊)", p: 69, isNuggets: true }, 
-                { n: "麥克雞塊 (4塊)", p: 50, isNuggets: true },
-                { n: "勁辣香雞翅 (2塊)", p: 50 }, { n: "麥香雞", p: 50 }, { n: "麥香魚", p: 69 },
-                { n: "薯條 (小)", p: 50 }, { n: "蘋果派", p: 50 }, { n: "OREO 冰炫風", p: 69 }, { n: "大蛋捲冰淇淋", p: 50 }
-            ],
-            oneplusone_white: ["可口可樂 (小)", "檸檬風味紅茶 (小)", "雪碧 (小)", "可口可樂 Zero (小)", "無糖綠茶 (冰) (小)", "無糖紅茶 (冰) (小)", "紅茶 (熱)"]
+                { n: "水果袋 (芭樂)", p: 43 }, { n: "四季沙拉", p: 56 }
+            ]
         };
 
         let currentCat = 'burger'; let selectedItem = null; let cart = [];
         let orders = JSON.parse(localStorage.getItem('mcd_orders_v4')) || [];
         let deadline = localStorage.getItem('mcd_deadline_v4') || "";
 
-        window.onload = () => { switchCat('burger'); initDrinks(); init1Plus1(); renderAdmin(); updateClock(); setInterval(updateClock, 1000); };
+        window.onload = () => { switchCat('burger'); initDrinks(); renderAdmin(); updateClock(); setInterval(updateClock, 1000); };
 
         function switchCat(cat) {
             currentCat = cat; selectedItem = null;
             document.getElementById('custom-box').classList.add('hidden');
-            document.getElementById('oneplusone-box').classList.toggle('hidden', cat !== 'oneplusone');
             const grid = document.getElementById('item-grid'); grid.innerHTML = "";
             if (MENU[cat]) {
                 MENU[cat].forEach(item => {
@@ -248,11 +222,11 @@
             const side = document.getElementById('side-select').value;
             let total = selectedItem.p;
 
-            if (currentCat === 'snack') {
-                sideArea.classList.add('hidden');
-            } else {
+            if (currentCat === 'snack') { sideArea.classList.add('hidden'); } 
+            else {
                 sideArea.classList.remove('hidden');
-                const sidePrices = { none: 0, A: 65, B: 70, C: 84, D: 99, E: 99 };
+                // 更新後的外送配餐價格
+                const sidePrices = { none: 0, A: 65, B: 70, C: 84, D: 150, E: 150, F: 120 };
                 total += sidePrices[side];
             }
 
@@ -260,18 +234,18 @@
             document.querySelector('.opt-fry').classList.toggle('hidden', !hasFry);
             if (hasFry && document.getElementById('fry-up').checked) total += 16;
             
-            document.querySelector('.opt-crispy').classList.toggle('hidden', currentCat === 'snack' || side !== 'C');
-            document.querySelector('.opt-flurry').classList.toggle('hidden', currentCat === 'snack' || side !== 'D');
-            if (side === 'D' && document.getElementById('flurry-flavor').value === '雙倍OREO') total += 6;
+            // 如果選 C 或 D，都要選麥脆鷄口味
+            document.querySelector('.opt-crispy').classList.toggle('hidden', currentCat === 'snack' || !['C', 'D'].includes(side));
+            
+            document.querySelector('.opt-flurry').classList.toggle('hidden', currentCat === 'snack' || side !== 'D_OLD'); // 舊的D保留位
 
-            // 修正點：如果是麥克雞塊 OR 選了 E豪吃配餐，顯示醬料選單
-            const needsSauce = selectedItem.isNuggets || side === 'E';
+            // 醬料邏輯：主餐是雞塊，或是選了 E 或 F 配餐
+            const needsSauce = selectedItem.isNuggets || ['E', 'F'].includes(side);
             document.querySelector('.opt-sauce').classList.toggle('hidden', !needsSauce);
 
             const drinkGroup = document.getElementById('drink-select-group');
-            if (currentCat === 'snack' || side === 'none') {
-                drinkGroup.classList.add('hidden');
-            } else {
+            if (currentCat === 'snack' || side === 'none') { drinkGroup.classList.add('hidden'); } 
+            else {
                 drinkGroup.classList.remove('hidden');
                 const drinkIdx = document.getElementById('drink-select').selectedIndex;
                 total += MENU.drink[drinkIdx].p - 38;
@@ -289,14 +263,13 @@
                 if (side !== 'none') {
                     info += ` + ${side}配餐`;
                     if (side === 'A' && document.getElementById('fry-up').checked) info += "(薯大+$16)";
-                    if (side === 'D') info += `(${document.getElementById('flurry-flavor').value})`;
-                    if (side === 'C') info += `(${document.getElementById('crispy-flavor').value})`;
+                    if (['C', 'D'].includes(side)) info += `(${document.getElementById('crispy-flavor').value})`;
                     info += ` (${MENU.drink[document.getElementById('drink-select').selectedIndex].n})`;
                 }
             } else { p = selectedItem.p; }
 
-            // 修正點：如果主餐是雞塊 OR 配餐選 E，帶入醬料資訊
-            if (selectedItem.isNuggets || side === 'E') {
+            // 帶入醬料資訊
+            if (selectedItem.isNuggets || ['E', 'F'].includes(side)) {
                 info += `(${document.getElementById('sauce-select').value})`;
             }
 
@@ -327,42 +300,35 @@
         }
 
         function initDrinks() { document.getElementById('drink-select').innerHTML = MENU.drink.map(d => `<option>${d.n} ($${d.p})</option>`).join(''); }
-        function init1Plus1() {
-            document.getElementById('red-zone').innerHTML = MENU.oneplusone_red.map((item, index) => `<option value="${index}">${item.n} ($${item.p})</option>`).join('');
-            document.getElementById('white-zone').innerHTML = MENU.oneplusone_white.map(n => `<option>${n}</option>`).join('');
-        }
-        function update1Plus1Sauce() {
-            const item = MENU.oneplusone_red[document.getElementById('red-zone').value];
-            document.getElementById('oneplusone-sauce-area').classList.toggle('hidden', !item.isNuggets);
-        }
-        function add1Plus1ToCart() {
-            const item = MENU.oneplusone_red[document.getElementById('red-zone').value];
-            let info = `【1+1】${item.n} + ${document.getElementById('white-zone').value}`;
-            if (item.isNuggets) info += `(${document.getElementById('oneplusone-sauce-select').value})`;
-            cart.push({ info, p: item.p }); updateCart();
-        }
+
         function renderAdmin() {
             const tbody = document.getElementById('admin-tbody'); const summaryDiv = document.getElementById('admin-summary');
             if (orders.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:gray;">尚無資料</td></tr>`; return; }
             summaryDiv.innerHTML = `<div>👥 人數: <b>${orders.length}</b> (未繳: <b style="color:red">${orders.filter(o => !o.paid).length}</b>)<br>🍔 原價: <b>$${orders.reduce((s, o) => s + o.ori, 0)}</b> | 💰 應收: <b>$${orders.reduce((s, o) => s + o.fin, 0)}</b></div>`;
             tbody.innerHTML = orders.map((o, i) => `<tr class="${o.paid ? 'paid-row' : ''}"><td>${o.name}</td><td>${o.detail}</td><td>$${o.ori}</td><td style="color:red; font-weight:bold">$${o.fin}</td><td>實收 <input type="number" value="${o.rec || ''}" style="width:60px;" onchange="updatePay(${i}, this.value)"><br>找零: $${Math.max(0, (o.rec || 0) - o.fin)}</td><td><input type="checkbox" ${o.paid ? 'checked' : ''} onchange="togglePaid(${i}, this.checked)"> 已清</td><td><button onclick="deleteOrder(${i})" style="background:#dc3545; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">刪除</button></td></tr>`).join('');
         }
+        
         async function syncFromCloud() { try { const response = await fetch(GAS_URL); orders = await response.json(); localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); alert("雲端同步完成！"); } catch (e) { alert("同步失敗。"); } }
+        
+        function switchTab(t) {
+            if (t === 'admin') {
+                const password = prompt("請輸入管理員密碼：");
+                if (password === "0817") {
+                    document.getElementById('order-view').classList.add('hidden');
+                    document.getElementById('admin-view').classList.remove('hidden');
+                    renderAdmin(); syncFromCloud();
+                } else { alert("密碼錯誤！"); }
+            } else {
+                document.getElementById('order-view').classList.remove('hidden');
+                document.getElementById('admin-view').classList.add('hidden');
+            }
+        }
+
         function deleteOrder(i) { if (confirm(`確定要刪除「${orders[i].name}」的訂單嗎？`)) { orders.splice(i, 1); localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); } }
         function updatePay(i, val) { orders[i].rec = parseInt(val) || 0; localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); }
         function togglePaid(i, val) { orders[i].paid = val; localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); }
         function saveDeadline() { deadline = document.getElementById('set-deadline').value; localStorage.setItem('mcd_deadline_v4', deadline); }
         function clearData() { if (confirm("確定清空所有紀錄？")) { orders = []; localStorage.removeItem('mcd_orders_v4'); renderAdmin(); } }
-        function switchTab(t) { 
-            document.getElementById('order-view').classList.toggle('hidden', t === 'admin'); 
-            document.getElementById('admin-view').classList.toggle('hidden', t === 'order'); 
-    
-            if (t === 'admin') {
-                // 切換到後台時，先顯示舊有的，並同時偷偷去雲端抓新的
-                renderAdmin(); 
-                syncFromCloud(); // 這行會讓它自動跑同步流程
-            }
-        }
         function updateClock() { if (!deadline) return; const diff = new Date(deadline) - new Date(); document.getElementById('timer').innerText = diff > 0 ? `截止倒數: ${Math.floor(diff / 3600000)}時${Math.floor((diff % 3600000) / 60000)}分${Math.floor((diff % 60000) / 1000)}秒` : "點餐已截止"; }
         function copyUnpaidList() { let list = "📢 班聚收錢清單：\n"; orders.forEach(o => { if (!o.paid) list += `❓ ${o.name}：應繳 $${o.fin}\n`; }); navigator.clipboard.writeText(list); alert("已複製名單！"); }
     </script>
