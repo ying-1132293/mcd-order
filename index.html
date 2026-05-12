@@ -347,13 +347,14 @@
         
         async function syncFromCloud() { try { const response = await fetch(GAS_URL); orders = await response.json(); localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); alert("雲端同步完成！"); } catch (e) { alert("同步失敗。"); } }
         
+        // 4. 後台密碼鎖 + 自動抓取雲端最新名單
         function switchTab(t) {
             if (t === 'admin') {
                 const password = prompt("請輸入管理員密碼：");
-                if (password === "0817") {
+                if (password === "0817") { // 這是你設定的密碼
                     document.getElementById('order-view').classList.add('hidden');
                     document.getElementById('admin-view').classList.remove('hidden');
-                    renderAdmin(); syncFromCloud();
+                    syncFromCloud(); // 進後台自動從雲端抓取最新的名單
                 } else { alert("密碼錯誤！"); }
             } else {
                 document.getElementById('order-view').classList.remove('hidden');
@@ -362,12 +363,41 @@
         }
 
         function deleteOrder(i) { if (confirm(`確定要刪除「${orders[i].name}」的訂單嗎？`)) { orders.splice(i, 1); localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); } }
-        function updatePay(i, val) { orders[i].rec = parseInt(val) || 0; localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); }
-        function togglePaid(i, val) { orders[i].paid = val; localStorage.setItem('mcd_orders_v4', JSON.stringify(orders)); renderAdmin(); }
+        // 1. 修改實收金額並同步
+        async function updatePay(i, val) {
+            orders[i].rec = parseInt(val) || 0;
+            localStorage.setItem('mcd_orders_v4', JSON.stringify(orders));
+            await syncUpdateToCloud(orders[i]); // 同步到雲端
+            renderAdmin();
+        }
+        // 2. 切換已清狀態並同步
+        async function togglePaid(i, val) {
+            orders[i].paid = val;
+            localStorage.setItem('mcd_orders_v4', JSON.stringify(orders));
+            await syncUpdateToCloud(orders[i]); // 同步到雲端
+            renderAdmin();
+        }
         function saveDeadline() { deadline = document.getElementById('set-deadline').value; localStorage.setItem('mcd_deadline_v4', deadline); }
         function clearData() { if (confirm("確定清空所有紀錄？")) { orders = []; localStorage.removeItem('mcd_orders_v4'); renderAdmin(); } }
         function updateClock() { if (!deadline) return; const diff = new Date(deadline) - new Date(); document.getElementById('timer').innerText = diff > 0 ? `截止倒數: ${Math.floor(diff / 3600000)}時${Math.floor((diff % 3600000) / 60000)}分${Math.floor((diff % 60000) / 1000)}秒` : "點餐已截止"; }
         function copyUnpaidList() { let list = "📢 班聚收錢清單：\n"; orders.forEach(o => { if (!o.paid) list += `❓ ${o.name}：應繳 $${o.fin}\n`; }); navigator.clipboard.writeText(list); alert("已複製名單！"); }
+        // 這是新增的：專門用來告訴雲端「某人已經付錢了」或「實收多少」
+        async function syncUpdateToCloud(orderObj) {
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'update', // 告訴 GAS 這是更新操作
+                        name: orderObj.name,
+                        paid: orderObj.paid,
+                        rec: orderObj.rec
+                    })
+                });
+                console.log("雲端同步成功");
+            } catch (e) {
+                console.error("雲端更新失敗", e);
+            }
+        }
     </script>
 </body>
 </html>
